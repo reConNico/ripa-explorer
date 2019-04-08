@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="flex justify-between px-10 py-8">
+    <div class="flex justify-between items-center px-10 py-8">
       <h2 class="text-white m-0 text-xl font-normal">{{ $t("Price in") }} {{ currencyName }}</h2>
       <div>
         <button @click="period('day')"  :class="{ 'chart-tab-active': type === 'day' }" class="chart-tab">{{ $t("Day") }}</button>
@@ -31,6 +31,13 @@ export default {
       showScale: true,
       responsive: true,
       maintainAspectRatio: false,
+      hover: {
+          intersect: false
+      },
+      animation: {
+          duration: 0
+      },
+      responsiveAnimationDuration: 0,
       legend: {
         display: false,
       },
@@ -54,7 +61,7 @@ export default {
                   return store.getters['currency/symbol'] + value.toFixed(8)
                 }
 
-                return store.getters['currency/symbol'] + value.toFixed(2)
+                return store.getters['currency/symbol'] + value.toFixed(4)
               },
               fontColor: '#838a9b',
               fontSize: 13,
@@ -95,6 +102,7 @@ export default {
         bodyFontSize: 14,
         xPadding: 14,
         yPadding: 14,
+        caretPadding: 20,
         displayColors: false,
         mode: 'index',
         intersect: false,
@@ -103,9 +111,13 @@ export default {
         callbacks: {
           title: tooltipItem => {
             const name = store.getters['currency/name']
-            const symbol = store.getters['currency/symbol']
+            const token = store.getters['currency/symbol']
 
-            return `${symbol} ${tooltipItem[0].yLabel} ${name}`
+            if ([token, 'BTC', 'ETH', 'LTC'].some(c => name.indexOf(c) > -1)) {
+              return `${name} ${Number(tooltipItem[0].yLabel).toFixed(8)}`
+            }
+
+            return `${name} ${Number(tooltipItem[0].yLabel).toFixed(4)}`
           },
           label: tooltipItem => ''
           // label: tooltipItem => `BTC ${tooltipItem.yLabel}`
@@ -136,30 +148,29 @@ export default {
       this.renderChart()
     },
 
-    renderChart(type) {
-      CryptoCompareService[this.type]().then(response => {
-        this.chartData = {
-          labels: response.labels,
-          datasets: [{
-            type: 'line',
-            pointHoverBackgroundColor: '#fff',
-            borderColor: '#535972',
-            pointHoverBorderColor: '#037cff',
-            pointBackgroundColor: 'rgba(0,0,0,0)',
-            pointBorderColor: 'rgba(0,0,0,0)',
-            pointHoverRadius: 5,
-            pointHoverBorderWidth: 4,
-            fill: false,
-            // data: this.chartData.map((point, index) => {
-            //   return {
-            //     t: this.labels[index],
-            //     y: point,
-            //   }
-            // }),
-            data: response.datasets
-          }],
-        }
-      })
+    async renderChart(type) {
+      const response = await CryptoCompareService[this.type]()
+      this.chartData = {
+        labels: response.labels,
+        datasets: [{
+          type: 'line',
+          pointHoverBackgroundColor: '#fff',
+          borderColor: '#535972',
+          pointHoverBorderColor: '#037cff',
+          pointBackgroundColor: 'rgba(0,0,0,0)',
+          pointBorderColor: 'rgba(0,0,0,0)',
+          pointHoverRadius: 7,
+          pointHoverBorderWidth: 4,
+          fill: false,
+          // data: this.chartData.map((point, index) => {
+          //   return {
+          //     t: this.labels[index],
+          //     y: point,
+          //   }
+          // }),
+          data: response.datasets
+        }],
+      }
     },
 
     watchCurrencyName() {

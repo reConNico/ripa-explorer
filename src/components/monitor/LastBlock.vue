@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-auto flex justify-between sm:ml-10">
+  <div class="flex-auto flex justify-between lg:ml-10">
     <div>
       <div class="text-grey mb-2 min-w-0">{{ $t("Last block") }}</div>
       <div class="text-lg truncate" v-if="block.id">
@@ -10,7 +10,7 @@
     <div class="hidden md:block">
       <div class="text-grey mb-2 min-w-0">{{ $t("Forged") }}</div>
       <div class="text-lg text-white truncate">
-        {{ $t("from transactions", { currency: readableCrypto(block.totalForged), transactions: block.numberOfTransactions }) }}
+        {{ readableCrypto(block.totalForged) }} {{ $tc("from transactions", block.numberOfTransactions, { count: block.numberOfTransactions }) }}
       </div>
     </div>
 
@@ -29,26 +29,24 @@ import { mapGetters } from 'vuex'
 
 export default {
   data: () => ({
-    block: {},
-    timer: null,
+    block: {}
   }),
 
-  mounted() {
-    this.getBlock().then(() => this.initialiseTimer())
+  async mounted() {
+    await this.prepareComponent()
   },
 
   methods: {
-    getBlock() {
-      return BlockService.last().then(response => (this.block = response))
+    async prepareComponent() {
+      await this.getBlock()
+
+      this.$store.watch(state => state.network.height, value => this.getBlock())
     },
 
-    initialiseTimer() {
-      this.timer = setInterval(this.getBlock, 60 * 1000)
-    },
-  },
-
-  beforeDestroy() {
-    clearInterval(this.timer)
-  },
+    async getBlock() {
+      const response = await BlockService.last()
+      this.block = response
+    }
+  }
 }
 </script>

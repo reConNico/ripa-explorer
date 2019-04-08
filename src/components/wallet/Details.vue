@@ -11,9 +11,24 @@
       <div
         v-if="view === 'public'"
         class="pr-8 flex-auto min-w-0">
-        <div class="text-grey mb-2">{{ $t("Address") }}</div>
-        <div class="text-lg text-white semibold truncate">
-          <span class="mr-2">{{ wallet.address }}</span>
+        <div class="flex items-center text-grey mb-2">
+          <span class="mr-2">{{ $t("Address") }}</span>
+          <svg
+            v-tooltip="$t('Second Signature Enabled')"
+            v-if="wallet.secondSignature"
+            class="fill-current"
+            viewBox="0 0 448 512"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            width="14px" height="14px">
+            <path fill-rule="evenodd" fill="currentColor" 
+            d="M400 224h-24v-72C376 68.2 307.8 0 224 0S72 68.2 72 152v72H48c-26.5 0-48 21.5-48 48v192c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V272c0-26.5-21.5-48-48-48zm-104 0H152v-72c0-39.7 32.3-72 72-72s72 32.3 72 72v72z"/>
+          </svg>
+        </div>
+        <div class="flex">
+          <div class="text-lg text-white semibold truncate">
+            <span class="mr-2">{{ wallet.address }}</span>
+          </div>
           <clipboard v-if="wallet.address" :value="wallet.address"></clipboard>
         </div>
       </div>
@@ -22,15 +37,37 @@
         v-if="view === 'private' && wallet.publicKey"
         class="pr-8 flex-auto min-w-0">
         <div class="text-grey mb-2">{{ $t("Public Key") }}</div>
-        <div class="text-lg text-white semibold truncate mr-2">
-          <span class="mr-2">{{ wallet.publicKey }}</span>
+        <div class="flex">
+          <div class="text-lg text-white semibold truncate mr-2">
+            <span class="mr-2">{{ wallet.publicKey }}</span>
+          </div>
           <clipboard v-if="wallet.publicKey" :value="wallet.publicKey"></clipboard>
+        </div>
+      </div>
+
+      <div
+        v-if="view === 'public'"
+        class="flex-none border-r border-grey-dark px-9">
+        <div class="text-grey mb-2">{{ $t("Balance (token)", { token: networkToken() }) }}</div>
+        <div v-tooltip="readableCurrency(wallet.balance)" class="text-lg text-white semibold">{{ readableCrypto(wallet.balance, false) }}</div>
+      </div>
+
+      <div
+        v-if="view === 'public'"
+        class="flex-none border-r border-grey-dark px-9">
+        <div class="text-grey mb-2">{{ $t("Transactions") }}</div>
+        <div class="text-lg text-white semibold">
+          <span class="text-green">{{ receivedCount }}</span>
+          <img class="mr-4" src="@/assets/images/icons/arrow-down.svg" />
+          <span class="text-red">{{ sendCount }}</span>
+          <img src="@/assets/images/icons/arrow-up.svg" />
         </div>
       </div>
 
       <div class="flex-none px-8">
         <button
           @click="view = 'public'"
+          :disabled="!wallet.publicKey"
           :class="[view === 'public' ? 'bg-blue-darker' : 'bg-transparent text-blue-light', 'py-3 px-3 rounded-md text-white font-normal text-xs hover:text-blue']">
           <svg
             class="block"
@@ -53,25 +90,6 @@
           </svg>
         </button>
       </div>
-
-      <div
-        v-if="view === 'public'"
-        class="flex-none border-l border-grey-dark px-9">
-        <div class="text-grey mb-2">{{ $t("Balance (token)", {token: networkToken()}) }}</div>
-        <div class="text-lg text-white semibold">{{ readableCrypto(wallet.balance, false) }}</div>
-      </div>
-
-      <div
-        v-if="view === 'public'"
-        class="flex-none border-l border-grey-dark px-9">
-        <div class="text-grey mb-2">{{ $t("Transactions") }}</div>
-        <div class="text-lg text-white semibold">
-          <span class="text-green">{{ receivedCount }}</span>
-          <img class="mr-4" src="@/assets/images/icons/arrow-down.svg" />
-          <span class="text-red">{{ sendCount }}</span>
-          <img src="@/assets/images/icons/arrow-up.svg" />
-        </div>
-      </div>
     </div>
 
     <!-- Mobile -->
@@ -83,8 +101,21 @@
       </div>
       <div class="px-2">
         <div class="flex -mx-6 mb-8">
-          <div class="md:w-1/2 px-6 w-full border-r border-grey-dark">
-            <div class="text-grey mb-2">{{ $t("Address") }}</div>
+          <div class="md:w-1/2 px-6 w-full border-grey-dark" :class="{ 'border-r': wallet.publicKey }">
+            <div class="flex items-center text-grey mb-2">
+              <span class="mr-2">{{ $t("Address") }}</span>
+              <svg
+                v-tooltip="{ trigger: 'click', content: $t('Second Signature Enabled') }"
+                v-if="wallet.secondSignature"
+                class="fill-current"
+                viewBox="0 0 448 512"
+                xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+                width="14px" height="14px">
+                <path fill-rule="evenodd" fill="currentColor" 
+                d="M400 224h-24v-72C376 68.2 307.8 0 224 0S72 68.2 72 152v72H48c-26.5 0-48 21.5-48 48v192c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V272c0-26.5-21.5-48-48-48zm-104 0H152v-72c0-39.7 32.3-72 72-72s72 32.3 72 72v72z"/>
+              </svg>
+            </div>
             <div class="text-white flex">
               <span class="mr-2">{{ truncate(wallet.address) }}</span>
               <clipboard v-if="wallet.address" :value="wallet.address"></clipboard>
@@ -93,17 +124,17 @@
           <div class="md:w-1/2 px-6 w-full" v-if="wallet.publicKey">
             <div class="text-grey mb-2">{{ $t("Public Key") }}</div>
             <div class="text-white flex">
-              <span class="mr-2">{{ truncate(wallet.publicKey, 36) }}</span>
+              <span class="mr-2">{{ truncate(wallet.publicKey) }}</span>
               <clipboard v-if="wallet.publicKey" :value="wallet.publicKey"></clipboard>
             </div>
           </div>
         </div>
         <div class="flex -mx-6">
-          <div class="w-1/2 px-6 w-full border-r border-grey-dark">
-            <div class="text-grey mb-2">{{ $t("Balance (token)", {token: networkToken()}) }}</div>
-            <div class="text-white">{{ readableCrypto(wallet.balance, false) }}</div>
+          <div class="md:w-1/2 px-6 w-full border-r border-grey-dark">
+            <div class="text-grey mb-2">{{ $t("Balance (token)", { token: networkToken() }) }}</div>
+            <div v-tooltip="{ trigger: 'hover click', content: `${readableCurrency(wallet.balance)}` }" class="text-white">{{ readableCrypto(wallet.balance, false) }}</div>
           </div>
-          <div class="w-1/2 px-6 w-full">
+          <div class="md:w-1/2 px-6 w-full">
             <div class="text-grey mb-2">{{ $t("Transactions") }}</div>
             <div class="text-white">
               <span class="whitespace-no-wrap">
@@ -160,16 +191,14 @@ export default {
   },
 
   methods: {
-    getSendCount() {
-      TransactionService.sendByAddressCount(this.wallet.address).then(
-        response => (this.sendCount = response)
-      )
+    async getSendCount() {
+      const response = await TransactionService.sentByAddressCount(this.wallet.address)
+      this.sendCount = response
     },
 
-    getReceivedCount() {
-      TransactionService.receivedByAddressCount(this.wallet.address).then(
-        response => (this.receivedCount = response)
-      )
+    async getReceivedCount() {
+      const response = await TransactionService.receivedByAddressCount(this.wallet.address)
+      this.receivedCount = response
     },
   },
 }

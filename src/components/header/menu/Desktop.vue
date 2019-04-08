@@ -1,11 +1,11 @@
 <template>
   <div class="absolute pin px-4 md:px-8 hidden sm:flex bg-theme-nav-background xl:rounded-r-md">
     <button
-      @click="$store.dispatch('ui/setMenuVisible', false)"
-      class='px-4 py-3 md:py-6 flex-none flex items-center border-b-2 border-transparent hover:border-red text-theme-text-secondary'>
+      @click="closeMenu"
+      class='px-4 py-3 md:py-6 flex-none flex items-center border-b-2 margin-t-2 mr-3 border-transparent hover:border-red text-theme-text-secondary'>
       <!-- Inline this SVG so we can change color dynamically -->
       <svg
-        class="flex-none mr-3 fill-current"
+        class="flex-none fill-current"
         xmlns="http://www.w3.org/2000/svg"
         xmlns:xlink="http://www.w3.org/1999/xlink"
         width="15px" height="13px">
@@ -13,9 +13,9 @@
       </svg>
     </button>
 
-    <router-link :to="{ name: 'home' }" tag="button" class="menu-button">{{ $t("Home") }}</router-link>
-    <router-link :to="{ name: 'top-wallets', params: { page: 1 } }" tag="button" class="menu-button">{{ $t("Top Wallets") }}</router-link>
-    <router-link :to="{ name: 'delegate-monitor' }" tag="button" class="menu-button">{{ $t("Delegate Monitor") }}</router-link>
+    <router-link @click.native="closeMenu" :to="{ name: 'home' }" tag="button" class="menu-button">{{ $t("Home") }}</router-link>
+    <router-link @click.native="closeMenu" :to="{ name: 'top-wallets', params: { page: 1 } }" tag="button" class="menu-button">{{ $t("Top Wallets") }}</router-link>
+    <router-link @click.native="closeMenu" :to="{ name: 'delegate-monitor' }" tag="button" class="menu-button">{{ $t("Delegate Monitor") }}</router-link>
     <!-- <router-link :to="{ name: 'statistics' }" tag="button" class="menu-button">Statistics</router-link> -->
 
     <div class="flex-auto"></div>
@@ -27,10 +27,13 @@
   </div>
 </template>
 
-<style>
-.menu-container {
-  transform: translateY(100%);
-  max-width: 480px;
-  width: 100%;
+<script type="text/ecmascript-6">
+
+export default {
+  methods: {
+    closeMenu() {
+      this.$store.dispatch('ui/setMenuVisible', false)
+    }
+  }
 }
-</style>
+</script>
